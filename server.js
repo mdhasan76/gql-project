@@ -2,8 +2,12 @@ const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { graphqlHTTP } = require("express-graphql");
 const app = express();
 const port = process.env.PORT || 5000;
+const schema = require("./GraphQL/schema")
+const resolver = require("./GraphQL/resolver");
+const { buildSchema } = require("graphql");
 
 // middlware 
 app.use(express.json());
@@ -21,15 +25,69 @@ const run = async () => {
     
     const serviceCollection = client.db("gQL-first").collection('product');
 
-    app.get("/h",async(req, res) =>{
-        res.send({hello: "hello"})
-    })
-    app.get('/s', async (req, res) => {
-        const query = {};
-        const services = serviceCollection.find(query);
-        const result = await services.toArray();
-        res.send(result)
-    })
+    // app.get("/h",async(req, res) =>{
+    //     res.send({hello: "hello"})
+    // })
+    // app.get('/s', async (req, res) => {
+    //     const query = {};
+    //     const services = serviceCollection.find(query);
+    //     const result = await services.toArray();
+    //     res.send(result)
+    // })
+
+    const resolver = {
+        hello: () =>{
+            return 12
+        },
+        another1: () =>{
+            return {a: 24, b: "b mean ball"}
+        } ,
+        another: () =>{
+            return {address:"dhan mia bari",name: "hasan", age: "21", fndList: {name: "robin", address: "Akhandabari", innerFnd: {sIfnd: "Kawser", home: "brother of Hasan"}}}
+        },
+        serverData: async () =>{
+            const result = await serviceCollection.find({}).toArray();
+            return result
+        }
+    }
+    const schema = buildSchema(`
+    type Another{
+        a: Int
+        b: String
+    }
+    type sData{
+        img: String
+        _id: ID
+    }
+    type Query{
+        hello: Int
+        another1: Another
+        another:user
+        serverData: [sData]
+        
+    }
+    type user{
+        name: String
+        age: Int
+        fndList: fnd
+        address: String
+    }
+    type fnd{
+        name: String
+        address: String
+        innerFnd: subInner
+    }
+    type subInner{
+        sIfnd: String
+        home: String
+    }
+`);
+
+    app.use("/graphql", graphqlHTTP({
+        schema,
+        rootValue:resolver ,
+        graphiql: true
+    }))
 
 }
 
