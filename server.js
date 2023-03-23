@@ -24,6 +24,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const run = async () => {
     
     const serviceCollection = client.db("gQL-first").collection('product');
+    const userCollection = client.db("gQL-first").collection('user');
 
     // app.get("/h",async(req, res) =>{
     //     res.send({hello: "hello"})
@@ -48,7 +49,16 @@ const run = async () => {
         serverData: async () =>{
             const result = await serviceCollection.find({}).toArray();
             return result
+        },
+        storUser: async (args) =>{
+            // const result = await serviceCollection.insertOne(req.input)
+            console.log(args)
+            return {
+                name: args.namdeo,
+                age: args.age
+            }
         }
+        
     }
     const schema = buildSchema(`
     type Another{
@@ -72,6 +82,10 @@ const run = async () => {
         fndList: fnd
         address: String
     }
+    type User{
+        name: String
+        age: Int
+    }
     type fnd{
         name: String
         address: String
@@ -80,6 +94,9 @@ const run = async () => {
     type subInner{
         sIfnd: String
         home: String
+    }
+    type Mutation{
+        storUser(namdeo: String!, age:Int!): User
     }
 `);
 
